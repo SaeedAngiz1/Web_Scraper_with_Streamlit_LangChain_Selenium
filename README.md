@@ -1,4 +1,5 @@
-https://shorturl.at/wEjci
+https://pywebscraper.streamlit.app
+
 This repository features a web scraper utilizing Python libraries, Streamlit interface, and LLM processes, and it retrieves, parses, and analyzes web pages, allowing you to view the results through a web application, because it supports headless browsing, multiple HTML parsers, environment-based configuration, and local LLM reasoning using LangChain + Ollama. It supports headless browsing, multiple HTML parsers, environment-based configuration, and local LLM reasoning using LangChain + Ollama, thus allowing for a flexible and powerful web scraping experience.
 
 What is Web Scraping?
