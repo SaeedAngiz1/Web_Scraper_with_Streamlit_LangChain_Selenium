@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 
 def scrape_website(website: str) -> str:
-    print("Launching Chrome browser...")
+    print("Launching browser...")
 
     if not website or website.strip() == "":
         raise ValueError("Empty or invalid URL provided.")
@@ -17,22 +17,47 @@ def scrape_website(website: str) -> str:
 
 
 
-    options = webdriver.ChromeOptions()
-    options.add_argument("--disable-gpu")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--headless")
-    options.add_argument("--disable-dev-shm-usage")
+    driver = None
 
+    # Try Chrome
     try:
-        driver = webdriver.Chrome(
+        options = webdriver.ChromeOptions()
+        options.add_argument("--disable-gpu")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--headless")
+        options.add_argument("--disable-dev-shm-usage")
+        driver = webdriver.Chrome(options=options)
+        print("Using Chrome browser.")
+    except WebDriverException:
+        pass
 
-            options=options,
-        )
-    except WebDriverException as e:
+    # Try Firefox
+    if driver is None:
+        try:
+            options = webdriver.FirefoxOptions()
+            options.add_argument("--headless")
+            driver = webdriver.Firefox(options=options)
+            print("Using Firefox browser.")
+        except WebDriverException:
+            pass
+
+    # Try Edge
+    if driver is None:
+        try:
+            options = webdriver.EdgeOptions()
+            options.add_argument("--headless")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            driver = webdriver.Edge(options=options)
+            print("Using Edge browser.")
+        except WebDriverException:
+            pass
+
+    if driver is None:
         raise RuntimeError(
-            "ChromeDriver failed to start. "
-            "Make sure Chrome is installed or chromedriver is in your PATH matches your Chrome version."
-        ) from e
+            "Failed to start any browser. "
+            "Make sure Chrome, Firefox, or Edge is installed or their drivers are in your PATH."
+        )
 
     try:
         driver.get(website)
