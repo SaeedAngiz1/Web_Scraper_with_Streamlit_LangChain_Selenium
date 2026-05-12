@@ -15,22 +15,23 @@ def scrape_website(website: str) -> str:
         website = "https://" + website
         print("DEBUG — corrected URL:", website)
 
-    chrome_driver_path = "./chromedriver.exe"
+
 
     options = webdriver.ChromeOptions()
     options.add_argument("--disable-gpu")
     options.add_argument("--no-sandbox")
-    # options.add_argument("--headless")  # uncomment if you want headless mode
+    options.add_argument("--headless")
+    options.add_argument("--disable-dev-shm-usage")
 
     try:
         driver = webdriver.Chrome(
-            service=Service(chrome_driver_path),
+
             options=options,
         )
     except WebDriverException as e:
         raise RuntimeError(
             "ChromeDriver failed to start. "
-            "Make sure chromedriver.exe matches your Chrome version."
+            "Make sure Chrome is installed or chromedriver is in your PATH matches your Chrome version."
         ) from e
 
     try:
