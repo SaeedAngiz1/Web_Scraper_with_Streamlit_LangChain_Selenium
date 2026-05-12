@@ -1,4 +1,3 @@
-from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate
 
 template = (
@@ -16,9 +15,38 @@ template = (
     "EXTRACTED INFORMATION:"
 )
 
-model = OllamaLLM(model="llama3.2")
+def get_model(provider, base_url, api_key, model_name):
+    if provider == "Ollama":
+        from langchain_ollama import OllamaLLM
+        kwargs = {"model": model_name}
+        if base_url:
+            kwargs["base_url"] = base_url
+        return OllamaLLM(**kwargs)
 
-def parse_with_ollama(dom_chunks, parse_description):
+    elif provider == "OpenAI":
+        from langchain_openai import ChatOpenAI
+        kwargs = {"model": model_name, "api_key": api_key}
+        if base_url:
+            kwargs["base_url"] = base_url
+        return ChatOpenAI(**kwargs)
+
+    elif provider == "Anthropic":
+        from langchain_anthropic import ChatAnthropic
+        kwargs = {"model_name": model_name, "api_key": api_key}
+        if base_url:
+            kwargs["base_url"] = base_url
+        return ChatAnthropic(**kwargs)
+
+    elif provider == "Google GenAI":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        kwargs = {"model": model_name, "google_api_key": api_key}
+        return ChatGoogleGenerativeAI(**kwargs)
+
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
+
+def parse_content(dom_chunks, parse_description, provider, base_url, api_key, model_name):
+    model = get_model(provider, base_url, api_key, model_name)
     prompt = ChatPromptTemplate.from_template(template)
     chain = prompt | model
 
@@ -26,8 +54,13 @@ def parse_with_ollama(dom_chunks, parse_description):
 
     for i, chunk in enumerate(dom_chunks, start=1):
         response = chain.invoke({"dom_content": chunk, "parse_description": parse_description})
-        parse_result.append(response)
+
+        # Handle string response vs Message response object depending on the chat model
+        if hasattr(response, "content"):
+            parse_result.append(response.content)
+        else:
+            parse_result.append(str(response))
+
         print(f"parsed batch {i} of {len(dom_chunks)}")
 
     return "\n".join(parse_result)
- 
