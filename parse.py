@@ -52,9 +52,11 @@ def parse_content(dom_chunks, parse_description, provider, base_url, api_key, mo
 
     parse_result = []
 
-    for i, chunk in enumerate(dom_chunks, start=1):
-        response = chain.invoke({"dom_content": chunk, "parse_description": parse_description})
+    inputs = [{"dom_content": chunk, "parse_description": parse_description} for chunk in dom_chunks]
 
+    responses = chain.batch(inputs)
+
+    for i, response in enumerate(responses, start=1):
         # Handle string response vs Message response object depending on the chat model
         if hasattr(response, "content"):
             parse_result.append(response.content)
