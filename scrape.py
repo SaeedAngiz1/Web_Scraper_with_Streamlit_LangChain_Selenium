@@ -1,7 +1,7 @@
-import time
 import selenium.webdriver as webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.support.ui import WebDriverWait
 from bs4 import BeautifulSoup
 
 
@@ -36,8 +36,10 @@ def scrape_website(website: str) -> str:
 
     try:
         driver.get(website)
+        WebDriverWait(driver, 10).until(
+            lambda d: d.execute_script("return document.readyState") == "complete"
+        )
         print("Page loaded successfully.")
-        time.sleep(2)
         html = driver.page_source
     finally:
         driver.quit()
