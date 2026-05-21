@@ -1,4 +1,13 @@
+from dataclasses import dataclass
 from langchain_core.prompts import ChatPromptTemplate
+
+@dataclass
+class LLMConfig:
+    provider: str
+    model_name: str
+    base_url: str = ""
+    api_key: str = ""
+
 
 template = (
     "You are an expert web scraping assistant. Extract specific information from the following web page content based on the user's request.\n\n"
@@ -15,38 +24,38 @@ template = (
     "EXTRACTED INFORMATION:"
 )
 
-def get_model(provider, base_url, api_key, model_name):
-    if provider == "Ollama":
+def get_model(config: LLMConfig):
+    if config.provider == "Ollama":
         from langchain_ollama import OllamaLLM
-        kwargs = {"model": model_name}
-        if base_url:
-            kwargs["base_url"] = base_url
+        kwargs = {"model": config.model_name}
+        if config.base_url:
+            kwargs["base_url"] = config.base_url
         return OllamaLLM(**kwargs)
 
-    elif provider == "OpenAI":
+    elif config.provider == "OpenAI":
         from langchain_openai import ChatOpenAI
-        kwargs = {"model": model_name, "api_key": api_key}
-        if base_url:
-            kwargs["base_url"] = base_url
+        kwargs = {"model": config.model_name, "api_key": config.api_key}
+        if config.base_url:
+            kwargs["base_url"] = config.base_url
         return ChatOpenAI(**kwargs)
 
-    elif provider == "Anthropic":
+    elif config.provider == "Anthropic":
         from langchain_anthropic import ChatAnthropic
-        kwargs = {"model_name": model_name, "api_key": api_key}
-        if base_url:
-            kwargs["base_url"] = base_url
+        kwargs = {"model_name": config.model_name, "api_key": config.api_key}
+        if config.base_url:
+            kwargs["base_url"] = config.base_url
         return ChatAnthropic(**kwargs)
 
-    elif provider == "Google GenAI":
+    elif config.provider == "Google GenAI":
         from langchain_google_genai import ChatGoogleGenerativeAI
-        kwargs = {"model": model_name, "google_api_key": api_key}
+        kwargs = {"model": config.model_name, "google_api_key": config.api_key}
         return ChatGoogleGenerativeAI(**kwargs)
 
     else:
-        raise ValueError(f"Unsupported provider: {provider}")
+        raise ValueError(f"Unsupported provider: {config.provider}")
 
-def parse_content(dom_chunks, parse_description, provider, base_url, api_key, model_name):
-    model = get_model(provider, base_url, api_key, model_name)
+def parse_content(dom_chunks, parse_description, config: LLMConfig):
+    model = get_model(config)
     prompt = ChatPromptTemplate.from_template(template)
     chain = prompt | model
 

@@ -1,6 +1,6 @@
 import streamlit as st
 from scrape import scrape_website, split_dom_content,clean_body_content,extract_body_content
-from parse import parse_content
+from parse import parse_content, LLMConfig
 
 
 st.title("AI Web Scraper")
@@ -65,7 +65,8 @@ if "dom_content" in st.session_state:
             with st.spinner("AI is analyzing and extracting content... This may take a moment."):
                 dom_chunks = split_dom_content(st.session_state.dom_content)
                 try:
-                    results = parse_content(dom_chunks, parse_description, provider, base_url, api_key, model_name)
+                    config = LLMConfig(provider=provider, model_name=model_name, base_url=base_url, api_key=api_key)
+                    results = parse_content(dom_chunks, parse_description, config)
                 except Exception as e:
                     results = ""
                     st.error(f"Error parsing content: {e}")
