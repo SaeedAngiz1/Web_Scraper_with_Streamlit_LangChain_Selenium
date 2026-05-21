@@ -1,8 +1,32 @@
 import time
+import urllib.parse
+import socket
+import ipaddress
 import selenium.webdriver as webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import WebDriverException
 from bs4 import BeautifulSoup
+
+def is_safe_url(url: str) -> bool:
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            return False
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+
+        addr_info = socket.getaddrinfo(hostname, None)
+        for _, _, _, _, sockaddr in addr_info:
+            ip = sockaddr[0]
+            parsed_ip = ipaddress.ip_address(ip)
+            if (parsed_ip.is_private or parsed_ip.is_loopback or
+                parsed_ip.is_link_local or parsed_ip.is_multicast or
+                parsed_ip.is_reserved or parsed_ip.is_unspecified):
+                return False
+        return True
+    except (ValueError, socket.gaierror):
+        return False
 
 
 def scrape_website(website: str) -> str:
@@ -14,6 +38,9 @@ def scrape_website(website: str) -> str:
     if not website.startswith(("http://", "https://")):
         website = "https://" + website
         print("DEBUG — corrected URL:", website)
+
+    if not is_safe_url(website):
+        raise ValueError("Unsafe or invalid URL provided.")
 
 
 
